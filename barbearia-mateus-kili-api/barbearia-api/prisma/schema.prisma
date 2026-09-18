@@ -1,0 +1,86 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum AppointmentStatus {
+  PENDENTE
+  CONFIRMADO
+  CANCELADO
+  CONCLUIDO
+}
+
+/// Serviços oferecidos pela barbearia (Corte Afro Signature, Hair Tattoo, etc.)
+model Service {
+  id             String   @id @default(uuid())
+  nome           String
+  descricao      String
+  preco          Float
+  duracaoMinutos Int
+  ativo          Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  appointments Appointment[]
+
+  @@map("services")
+}
+
+/// Agendamentos do único barbeiro (Mateus Kili).
+///
+/// A dupla proteção contra double-booking vive em dois lugares:
+///  1) Aplicação: appointments.service.ts roda a verificação de conflito
+///     dentro de uma transação Serializable antes do INSERT.
+///  2) Banco: migration 000002_add_overlap_constraint cria uma constraint
+///     de exclusão (EXCLUDE USING gist) que é a garantia atômica real —
+///     ela é quem de fato impede a corrida entre duas requisições
+///     simultâneas, independente de bug de aplicação.
+model Appointment {
+  id              String            @id @default(uuid())
+  clienteNome     String
+  clienteWhatsapp String
+  serviceId       String
+  service         Service           @relation(fields: [serviceId], references: [id])
+  dataHoraInicio  DateTime          @db.Timestamptz(3)
+  dataHoraFim     DateTime          @db.Timestamptz(3)
+  status          AppointmentStatus @default(PENDENTE)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  @@index([dataHoraInicio, dataHoraFim])
+  @@index([status])
+  @@map("appointments")
+}
+
+/// Grade de funcionamento por dia da semana (0 = domingo ... 6 = sábado).
+/// Um registro por dia. Dias sem registro (ou com `fechado = true`) são
+/// tratados como fechados no cálculo de disponibilidade.
+model BusinessHours {
+  id             String  @id @default(uuid())
+  diaSemana      Int
+  horaAbertura   String
+  horaFechamento String
+  pausaInicio    String?
+  pausaFim       String?
+  fechado        Boolean @default(false)
+
+  @@unique([diaSemana])
+  @@map("business_hours")
+}
+
+/// Bloqueios manuais de agenda (folgas, imprevistos, feriados).
+/// Um bloqueio de dia inteiro é apenas um range que cobre o expediente todo.
+model BlockedSlot {
+  id         String   @id @default(uuid())
+  dataInicio DateTime @db.Timestamptz(3)
+  dataFim    DateTime @db.Timestamptz(3)
+  motivo     String
+  createdAt  DateTime @default(now())
+
+  @@index([dataInicio, dataFim])
+  @@map("blocked_slots")
+}

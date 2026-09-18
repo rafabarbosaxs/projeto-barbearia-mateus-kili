@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Painel do Barbeiro — Mateus Kili</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-void:#0a0a0c;
+    --bg-panel:#141417;
+    --bg-panel-2:#1b1b20;
+    --steel:#2f2f37;
+    --steel-light:#48484f;
+    --neon-green:#3dff8a;
+    --neon-pink:#ff28b8;
+    --neon-blue:#00d9ff;
+    --text-primary:#f6f6f3;
+    --text-muted:#9c9ca6;
+    --text-dim:#6b6b75;
+
+    --font-display:'Anton', sans-serif;
+    --font-body:'Inter', sans-serif;
+    --font-mono:'JetBrains Mono', monospace;
+
+    --radius-sm:10px;
+    --radius-md:16px;
+    --radius-lg:22px;
+
+    --shadow-green: 0 0 12px rgba(61,255,138,.5);
+    --shadow-pink: 0 0 12px rgba(255,40,184,.5);
+    --shadow-blue: 0 0 12px rgba(0,217,255,.5);
+  }
+  *,*::before,*::after{box-sizing:border-box;}
+  body{
+    margin:0;min-height:100vh;
+    background:var(--bg-void);
+    color:var(--text-primary);
+    font-family:var(--font-body);
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3{margin:0;font-family:var(--font-display);text-transform:uppercase;letter-spacing:.02em;}
+  p{margin:0;}
+  button{font-family:inherit;cursor:pointer;}
+  input,select{font-family:inherit;}
+  ::selection{background:var(--neon-pink);color:#0a0a0c;}
+  :focus-visible{outline:2px solid var(--neon-blue);outline-offset:2px;}
+
+  .btn{
+    font-weight:700;font-size:.82rem;letter-spacing:.02em;text-transform:uppercase;
+    padding:.7rem 1.3rem;border-radius:999px;border:1px solid transparent;
+    display:inline-flex;align-items:center;justify-content:center;gap:.5rem;
+    transition:transform .15s ease, box-shadow .2s ease;
+  }
+  .btn:active{transform:scale(.97);}
+  .btn-primary{background:linear-gradient(95deg,var(--neon-green),var(--neon-blue));color:#08130b;box-shadow:var(--shadow-green);}
+  .btn-primary:hover{filter:brightness(1.08);}
+  .btn-ghost{background:transparent;color:var(--text-primary);border-color:var(--steel-light);}
+  .btn-ghost:hover{border-color:var(--neon-blue);color:var(--neon-blue);}
+  .btn-danger{background:transparent;color:var(--neon-pink);border-color:var(--neon-pink);}
+  .btn-danger:hover{background:var(--neon-pink);color:#1a0512;}
+  .btn-sm{padding:.45rem .9rem;font-size:.7rem;}
+  .btn:disabled{opacity:.4;cursor:not-allowed;}
+
+  .field label{display:block;font-family:var(--font-mono);font-size:.7rem;text-transform:uppercase;letter-spacing:.06em;color:var(--text-dim);margin-bottom:.4rem;}
+  .field input{width:100%;background:var(--bg-panel-2);border:1px solid var(--steel);border-radius:var(--radius-sm);padding:.7rem .85rem;color:var(--text-primary);font-size:.9rem;}
+  .field input:focus{border-color:var(--neon-green);}
+
+  .empty-hint{color:var(--text-dim);font-size:.85rem;font-style:italic;}
+  .error-text{color:var(--neon-pink);font-size:.82rem;}
+
+  /* ---------- login ---------- */
+  #loginScreen{
+    min-height:100vh;display:flex;align-items:center;justify-content:center;padding:1.5rem;
+  }
+  .login-card{
+    width:100%;max-width:360px;
+    background:var(--bg-panel);border:1px solid var(--steel);border-radius:var(--radius-lg);
+    padding:2rem 1.75rem;
+  }
+  .login-card h1{font-size:1.4rem;color:var(--neon-pink);text-shadow:0 0 16px rgba(255,40,184,.4);margin-bottom:.3rem;}
+  .login-card .sub{color:var(--text-muted);font-size:.85rem;margin-bottom:1.5rem;}
+  .login-card form{display:grid;gap:1.1rem;}
+
+  /* ---------- painel ---------- */
+  #panelScreen{display:none;max-width:900px;margin:0 auto;padding:1.5rem 1.25rem 4rem;}
+  .panel-header{
+    display:flex;align-items:center;justify-content:space-between;gap:1rem;
+    padding-bottom:1.25rem;margin-bottom:1.5rem;border-bottom:1px solid var(--steel);
+    flex-wrap:wrap;
+  }
+  .panel-header h1{font-size:1.3rem;}
+  .panel-header .sub{color:var(--text-dim);font-family:var(--font-mono);font-size:.72rem;}
+
+  .card{background:var(--bg-panel);border:1px solid var(--steel);border-radius:var(--radius-lg);padding:1.5rem;margin-bottom:1.5rem;}
+  .card h2{font-size:1.05rem;margin-bottom:1rem;}
+
+  .date-row{display:flex;align-items:flex-end;gap:.8rem;flex-wrap:wrap;margin-bottom:1.25rem;}
+  .date-row .field{flex:1;min-width:160px;}
+
+  .appt-list{display:flex;flex-direction:column;gap:.7rem;}
+  .appt-item{
+    background:var(--bg-panel-2);border:1px solid var(--steel);border-radius:var(--radius-md);
+    padding:1rem 1.1rem;display:flex;flex-wrap:wrap;align-items:center;gap:.8rem 1.2rem;
+  }
+  .appt-time{font-family:var(--font-mono);font-weight:700;font-size:1.05rem;color:var(--neon-green);min-width:56px;}
+  .appt-main{flex:1;min-width:180px;}
+  .appt-main .name{font-weight:700;font-size:.95rem;}
+  .appt-main .meta{color:var(--text-muted);font-size:.82rem;margin-top:.15rem;}
+  .appt-main .meta a{color:var(--neon-blue);text-decoration:none;}
+  .appt-main .meta a:hover{text-decoration:underline;}
+  .status-select{
+    background:var(--bg-panel);border:1px solid var(--steel-light);border-radius:999px;
+    color:var(--text-primary);font-family:var(--font-mono);font-size:.72rem;
+    text-transform:uppercase;padding:.45rem .8rem;
+  }
+  .status-select[data-status="PENDENTE"]{border-color:var(--neon-blue);color:var(--neon-blue);}
+  .status-select[data-status="CONFIRMADO"]{border-color:var(--neon-green);color:var(--neon-green);}
+  .status-select[data-status="CANCELADO"]{border-color:var(--neon-pink);color:var(--neon-pink);}
+  .status-select[data-status="CONCLUIDO"]{border-color:var(--text-dim);color:var(--text-dim);}
+
+  .block-form{display:grid;gap:1rem;grid-template-columns:1fr;margin-bottom:1.5rem;}
+  @media(min-width:640px){.block-form{grid-template-columns:1fr 1fr;}}
+  .block-form .full{grid-column:1/-1;}
+
+  .block-list{display:flex;flex-direction:column;gap:.6rem;}
+  .block-item{
+    background:var(--bg-panel-2);border:1px solid var(--steel);border-radius:var(--radius-sm);
+    padding:.8rem 1rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;
+  }
+  .block-item .info{font-size:.85rem;}
+  .block-item .info .motivo{font-weight:600;}
+  .block-item .info .periodo{font-family:var(--font-mono);color:var(--text-dim);font-size:.75rem;margin-top:.15rem;}
+</style>
+</head>
+<body>
+
+<!-- ================= LOGIN ================= -->
+<div id="loginScreen">
+  <div class="login-card">
+    <h1>Painel do Barbeiro</h1>
+    <p class="sub">Mateus Kili — acesso restrito</p>
+    <form id="loginForm">
+      <div class="field">
+        <label for="loginEmail">E-mail</label>
+        <input type="email" id="loginEmail" autocomplete="username" required>
+      </div>
+      <div class="field">
+        <label for="loginSenha">Senha</label>
+        <input type="password" id="loginSenha" autocomplete="current-password" required>
+      </div>
+      <p class="error-text" id="loginError" style="display:none;"></p>
+      <button type="submit" class="btn btn-primary" id="loginBtn">Entrar</button>
+    </form>
+  </div>
+</div>
+
+<!-- ================= PAINEL ================= -->
+<div id="panelScreen">
+  <div class="panel-header">
+    <div>
+      <h1>Painel do Barbeiro</h1>
+      <p class="sub">Mateus Kili — Barbeiro da Favela</p>
+    </div>
+    <button class="btn btn-ghost btn-sm" id="logoutBtn">Sair</button>
+  </div>
+
+  <!-- Agenda do dia -->
+  <div class="card">
+    <h2>Agenda do dia</h2>
+    <div class="date-row">
+      <div class="field">
+        <label for="agendaDate">Data</label>
+        <input type="date" id="agendaDate">
+      </div>
+      <button class="btn btn-ghost btn-sm" id="refreshAgendaBtn">Atualizar</button>
+    </div>
+    <div class="appt-list" id="appointmentsList"><p class="empty-hint">Carregando agenda...</p></div>
+  </div>
+
+  <!-- Bloqueio de agenda -->
+  <div class="card">
+    <h2>Bloquear horário / folga</h2>
+    <form id="blockForm" class="block-form">
+      <div class="field">
+        <label for="blockStart">Início</label>
+        <input type="datetime-local" id="blockStart" required>
+      </div>
+      <div class="field">
+        <label for="blockEnd">Fim</label>
+        <input type="datetime-local" id="blockEnd" required>
+      </div>
+      <div class="field full">
+        <label for="blockMotivo">Motivo</label>
+        <input type="text" id="blockMotivo" placeholder="Ex.: Folga, consulta médica..." required>
+      </div>
+      <p class="error-text full" id="blockError" style="display:none;"></p>
+      <button type="submit" class="btn btn-primary full" id="blockSubmitBtn" style="justify-self:start;">Bloquear</button>
+    </form>
+    <h2 style="margin-bottom:.9rem;">Bloqueios cadastrados</h2>
+    <div class="block-list" id="blockedList"><p class="empty-hint">Carregando bloqueios...</p></div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   Troque API_URL se o backend rodar em outro host/porta.
+   ============================================================ */
+const API_URL = "http://localhost:3000/api";
+const TOKEN_KEY = "mkAdminToken";
+
+/* ---------- camada de comunicação com a API ---------- */
+async function apiRequest(path, options = {}, { auth = true } = {}) {
+  const headers = { 'Content-Type': 'application/json', ...(options.headers || {}) };
+  if (auth) {
+    const token = localStorage.getItem(TOKEN_KEY);
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+  }
+
+  let response;
+  try {
+    response = await fetch(`${API_URL}${path}`, { ...options, headers });
+  } catch {
+    throw new Error('Não foi possível conectar ao servidor. Verifique sua internet e tente novamente.');
+  }
+
+  if (response.status === 401) {
+    logout('Sessão expirada. Faça login novamente.');
+    throw new Error('Sessão expirada.');
+  }
+
+  let body = null;
+  try { body = await response.json(); } catch { /* sem corpo (ex.: 204) */ }
+
+  if (!response.ok) {
+    throw new Error(body?.error?.message || 'Ocorreu um erro inesperado. Tente novamente.');
+  }
+  return body;
+}
+
+const login = (email, senha) => apiRequest('/auth/login', { method: 'POST', body: JSON.stringify({ email, senha }) }, { auth: false });
+const getAdminAppointments = (date) => apiRequest(`/admin/appointments?date=${encodeURIComponent(date)}`);
+const updateAppointmentStatus = (id, status) => apiRequest(`/admin/appointments/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status }) });
+const getBlockedSlots = () => apiRequest('/admin/blocked-slots');
+const createBlockedSlot = (data) => apiRequest('/admin/blocked-slots', { method: 'POST', body: JSON.stringify(data) });
+const deleteBlockedSlot = (id) => apiRequest(`/admin/blocked-slots/${id}`, { method: 'DELETE' });
+
+/* ---------- telas ---------- */
+const loginScreen = document.getElementById('loginScreen');
+const panelScreen = document.getElementById('panelScreen');
+
+function showPanel() {
+  loginScreen.style.display = 'none';
+  panelScreen.style.display = 'block';
+  loadAgenda();
+  loadBlockedSlots();
+}
+
+function showLogin(message) {
+  panelScreen.style.display = 'none';
+  loginScreen.style.display = 'flex';
+  const errorEl = document.getElementById('loginError');
+  if (message) {
+    errorEl.textContent = message;
+    errorEl.style.display = 'block';
+  }
+}
+
+function logout(message) {
+  localStorage.removeItem(TOKEN_KEY);
+  showLogin(message);
+}
+
+document.getElementById('logoutBtn').addEventListener('click', () => logout());
+
+/* ---------- login ---------- */
+document.getElementById('loginForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const email = document.getElementById('loginEmail').value.trim();
+  const senha = document.getElementById('loginSenha').value;
+  const btn = document.getElementById('loginBtn');
+  const errorEl = document.getElementById('loginError');
+  errorEl.style.display = 'none';
+
+  btn.disabled = true;
+  btn.textContent = 'Entrando...';
+  try {
+    const { token } = await login(email, senha);
+    localStorage.setItem(TOKEN_KEY, token);
+    showPanel();
+  } catch (err) {
+    errorEl.textContent = err.message;
+    errorEl.style.display = 'block';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Entrar';
+  }
+});
+
+/* ---------- agenda do dia ---------- */
+const agendaDateInput = document.getElementById('agendaDate');
+const appointmentsList = document.getElementById('appointmentsList');
+const STATUS_OPTIONS = ['PENDENTE', 'CONFIRMADO', 'CANCELADO', 'CONCLUIDO'];
+
+function todayISO() {
+  const d = new Date();
+  const tz = d.getTimezoneOffset();
+  return new Date(d.getTime() - tz * 60000).toISOString().slice(0, 10);
+}
+agendaDateInput.value = todayISO();
+
+agendaDateInput.addEventListener('change', loadAgenda);
+document.getElementById('refreshAgendaBtn').addEventListener('click', loadAgenda);
+
+async function loadAgenda() {
+  appointmentsList.innerHTML = '<p class="empty-hint">Carregando agenda...</p>';
+  try {
+    const { appointments } = await getAdminAppointments(agendaDateInput.value);
+    renderAppointments(appointments);
+  } catch (err) {
+    appointmentsList.innerHTML = `<p class="error-text">${err.message}</p>`;
+  }
+}
+
+function renderAppointments(appointments) {
+  if (!appointments || appointments.length === 0) {
+    appointmentsList.innerHTML = '<p class="empty-hint">Nenhum agendamento para esta data.</p>';
+    return;
+  }
+  appointmentsList.innerHTML = '';
+  appointments.forEach(appt => {
+    const hora = new Date(appt.dataHoraInicio).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    const whatsDigits = (appt.clienteWhatsapp || '').replace(/\D/g, '');
+
+    const item = document.createElement('div');
+    item.className = 'appt-item';
+    item.innerHTML = `
+      <span class="appt-time">${hora}</span>
+      <div class="appt-main">
+        <div class="name">${appt.clienteNome}</div>
+        <div class="meta">${appt.service?.nome ?? ''} · <a href="https://wa.me/${whatsDigits}" target="_blank" rel="noopener">WhatsApp</a></div>
+      </div>
+      <select class="status-select" data-status="${appt.status}" data-id="${appt.id}">
+        ${STATUS_OPTIONS.map(s => `<option value="${s}" ${s === appt.status ? 'selected' : ''}>${s}</option>`).join('')}
+      </select>
+    `;
+    appointmentsList.appendChild(item);
+  });
+
+  appointmentsList.querySelectorAll('.status-select').forEach(select => {
+    select.addEventListener('change', async () => {
+      const id = select.dataset.id;
+      const novoStatus = select.value;
+      select.disabled = true;
+      try {
+        await updateAppointmentStatus(id, novoStatus);
+        select.dataset.status = novoStatus;
+      } catch (err) {
+        alert(err.message);
+        loadAgenda();
+      } finally {
+        select.disabled = false;
+      }
+    });
+  });
+}
+
+/* ---------- bloqueios ---------- */
+const blockedList = document.getElementById('blockedList');
+
+document.getElementById('blockForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const start = document.getElementById('blockStart').value;
+  const end = document.getElementById('blockEnd').value;
+  const motivo = document.getElementById('blockMotivo').value.trim();
+  const errorEl = document.getElementById('blockError');
+  const btn = document.getElementById('blockSubmitBtn');
+  errorEl.style.display = 'none';
+
+  if (!start || !end || !motivo) return;
+
+  btn.disabled = true;
+  btn.textContent = 'Bloqueando...';
+  try {
+    // horário local (America/Sao_Paulo, UTC-3 fixo, sem horário de verão no Brasil)
+    await createBlockedSlot({
+      dataInicio: `${start}:00-03:00`,
+      dataFim: `${end}:00-03:00`,
+      motivo,
+    });
+    document.getElementById('blockForm').reset();
+    loadBlockedSlots();
+    loadAgenda();
+  } catch (err) {
+    errorEl.textContent = err.message;
+    errorEl.style.display = 'block';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Bloquear';
+  }
+});
+
+async function loadBlockedSlots() {
+  blockedList.innerHTML = '<p class="empty-hint">Carregando bloqueios...</p>';
+  try {
+    const { blockedSlots } = await getBlockedSlots();
+    renderBlockedSlots(blockedSlots);
+  } catch (err) {
+    blockedList.innerHTML = `<p class="error-text">${err.message}</p>`;
+  }
+}
+
+function renderBlockedSlots(blocks) {
+  if (!blocks || blocks.length === 0) {
+    blockedList.innerHTML = '<p class="empty-hint">Nenhum bloqueio cadastrado.</p>';
+    return;
+  }
+  blockedList.innerHTML = '';
+  blocks.forEach(b => {
+    const inicio = new Date(b.dataInicio).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
+    const fim = new Date(b.dataFim).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
+
+    const item = document.createElement('div');
+    item.className = 'block-item';
+    item.innerHTML = `
+      <div class="info">
+        <div class="motivo">${b.motivo}</div>
+        <div class="periodo">${inicio} → ${fim}</div>
+      </div>
+      <button class="btn btn-danger btn-sm" data-id="${b.id}">Remover</button>
+    `;
+    item.querySelector('button').addEventListener('click', async (ev) => {
+      const btn = ev.currentTarget;
+      btn.disabled = true;
+      try {
+        await deleteBlockedSlot(b.id);
+        loadBlockedSlots();
+        loadAgenda();
+      } catch (err) {
+        alert(err.message);
+        btn.disabled = false;
+      }
+    });
+    blockedList.appendChild(item);
+  });
+}
+
+/* ---------- inicialização ---------- */
+if (localStorage.getItem(TOKEN_KEY)) {
+  showPanel();
+} else {
+  showLogin();
+}
+</script>
+</body>
+</html>

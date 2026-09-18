@@ -1,0 +1,23 @@
+# ⚠️  Este arquivo é só para RODAR O POSTGRES LOCALMENTE em desenvolvimento.
+# Em produção, use um Postgres gerenciado (RDS, Supabase, Neon, Railway,
+# Render, Cloud SQL etc.) — não suba este container como banco de produção.
+# As credenciais abaixo têm fallback fraco de propósito (só funciona em
+# localhost); sobrescreva via variáveis de ambiente se quiser trocá-las.
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: barbearia_mateus_kili_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-barbearia_mateus_kili}
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - barbearia_pgdata:/var/lib/postgresql/data
+
+volumes:
+  barbearia_pgdata:
